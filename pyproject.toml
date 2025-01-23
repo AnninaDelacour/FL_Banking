@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "banking_FL"
+version = "2.0.0"
+description = "Federated Learning with XGBoost and Flower for a Banking Setting"
+license = "Apache-2.0"
+dependencies = [
+    "flwr[simulation]>=1.14.0",
+    "flwr-datasets>=0.4.0",
+    "xgboost>=2.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "flwrlabs"
+
+[tool.flwr.app.components]
+serverapp = "flwr_xgb.server_app:app"
+clientapp = "flwr_xgb.client_app:app"
+
+
+[tool.flwr.app.config]
+# ServerApp
+num-server-rounds = 8
+fraction-fit = 0.5
+fraction-evaluate = 1.0
+
+# ClientApp
+local-epochs = 3
+params.objective = "binary:logistic"
+params.eta = 0.03 # Learning rate
+params.max-depth = 6
+params.eval-metric = "auc"
+params.nthread = 4
+params.num-parallel-tree = 1
+params.subsample = 0.6
+params.tree-method = "hist"
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 3
