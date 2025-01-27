@@ -191,3 +191,7 @@ jupyter_notebooks/*
 BankA_Clean.csv
 BankB_Clean.csv
 BankC_Clean.csv
+
+BankA.csv
+BankB.csv
+BankC.csv
