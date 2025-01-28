@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "banking_FL"
-version = "2.0.0"
-description = "Federated Learning with XGBoost and Flower for a Banking Setting"
+version = "2.1.0"
+description = "Federated Learning with XGBoost and Flower for a Banking Setup"
 license = "Apache-2.0"
 dependencies = [
     "flwr[simulation]>=1.14.0",
-    "flwr-datasets>=0.4.0",
     "xgboost>=2.0.0",
+    "wandb>=0.15.4",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -20,26 +20,28 @@ packages = ["."]
 publisher = "flwrlabs"
 
 [tool.flwr.app.components]
-serverapp = "flwr_xgb.server_app:app"
-clientapp = "flwr_xgb.client_app:app"
-
+serverapp = "FL_XGBoost.server_app:app"
+clientapp = "FL_XGBoost.client_app:app"
 
 [tool.flwr.app.config]
 # ServerApp
-num-server-rounds = 8
-fraction-fit = 0.5
+num-server-rounds = 30
+fraction-fit = 1.0
 fraction-evaluate = 1.0
 
 # ClientApp
 local-epochs = 3
 params.objective = "binary:logistic"
-params.eta = 0.03 # Learning rate
-params.max-depth = 6
-params.eval-metric = "auc"
-params.nthread = 4
-params.num-parallel-tree = 1
-params.subsample = 0.6
-params.tree-method = "hist"
+params.eval_metric = "auc"
+params.max_depth = 6
+params.learning_rate = 0.1466
+params.subsample = 0.9383
+params.colsample_bytree = 0.8631
+params.min_child_weight = 6
+params.n_estimators = 200
+params.reg_alpha = 0.9566
+params.reg_lambda = 1.866
+params.early_stopping_rounds = 500
 
 [tool.flwr.federations]
 default = "local-simulation"
