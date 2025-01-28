@@ -1,43 +1,42 @@
-"""xgboost_quickstart: A Flower / XGBoost app."""
-
 from typing import Dict
 from flwr.common import Context, Parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedXgbBagging
 
 
+
 def evaluate_metrics_aggregation(eval_metrics):
-    """Return AUC for evaluation."""
+    """Aggregates metrics from clients, with a focus on AUC."""
     total_num = sum([num for num, _ in eval_metrics])
     auc_aggregated = (
         sum([metrics["AUC"] * num for num, metrics in eval_metrics]) / total_num
     )
-    metrics_aggregated = {"AUC": auc_aggregated}
+    metrics_aggregated = {"AUC (aggregated)": auc_aggregated}
 
-    global_model_bytes = eval_metrics[0][1].get("global_model_bytes")  # Beispielzugriff
+    global_model_bytes = eval_metrics[0][1].get("global_model_bytes")
     if global_model_bytes:
         with open("global_model.json", "wb") as f:
             f.write(global_model_bytes)
 
     return metrics_aggregated
 
+#______________
 
 def config_func(rnd: int) -> Dict[str, str]:
-    """Return a configuration with global epochs."""
-    config = {
-        "global_round": str(rnd),
-    }
-    return config
+    """Returns configuration for each round."""
+    return {"global_round": str(rnd)}
 
+#______________
 
 def server_fn(context: Context):
-    with open("global_model.json", "rb") as f:
-        global_model = f.read()
+    try:
+        with open("global_model.json", "rb") as f:
+            global_model = f.read()
+    except FileNotFoundError:
+        global_model = None
 
-    # Lade Konfigurationswerte aus dem Kontext
     fraction_fit = context.run_config.get("fraction-fit", 0.7)
-
-    fraction_evaluate = context.run_config.get("fraction-evaluate", 1.0)
+    fraction_evaluate = context.run_config.get("fraction-evaluate", 0.8)
 
     strategy = FedXgbBagging(
         fraction_fit=fraction_fit,
@@ -52,9 +51,6 @@ def server_fn(context: Context):
 
     return ServerAppComponents(strategy=strategy, config=config)
 
+#______________
 
-
-# Create ServerApp
-app = ServerApp(
-    server_fn=server_fn,
-)
+app = ServerApp(server_fn=server_fn)
