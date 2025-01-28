@@ -1,1 +1,1 @@
-"""flwr_xgb: A Flower / XGBoost app."""
+"""FL_XGBoost: A Flower App for FL."""

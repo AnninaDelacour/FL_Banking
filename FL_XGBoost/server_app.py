@@ -35,8 +35,8 @@ def server_fn(context: Context):
     except FileNotFoundError:
         global_model = None
 
-    fraction_fit = context.run_config.get("fraction-fit", 0.7)
-    fraction_evaluate = context.run_config.get("fraction-evaluate", 0.8)
+    fraction_fit = context.run_config.get("fraction-fit", 1.0)
+    fraction_evaluate = context.run_config.get("fraction-evaluate", 1.0)
 
     strategy = FedXgbBagging(
         fraction_fit=fraction_fit,
@@ -47,7 +47,7 @@ def server_fn(context: Context):
         initial_parameters=Parameters(tensor_type="", tensors=[global_model]),
     )
 
-    config = ServerConfig(num_rounds=context.run_config.get("num-server-rounds", 10))
+    config = ServerConfig(num_rounds=context.run_config.get("num-server-rounds", 30))
 
     return ServerAppComponents(strategy=strategy, config=config)
 
