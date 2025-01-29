@@ -10,22 +10,21 @@ from flwr.server.strategy import FedXgbBagging
 
 def calculate_weights(eval_metrics):
     """
-    Berechnet Gewichtungen für die Clients basierend auf ihrem Recall.
-    Clients mit niedrigem Recall erhalten ein deutlich höheres Gewicht.
+    Calculates weights of clients (banks) based on their Recall.
+    Banks with lower Recall are stronger weighted.
     """
     recalls = [metrics["Recall"] for _, metrics in eval_metrics]
     weights = []
 
     for r in recalls:
         if r < 0.5:
-            weight = 1 / (r + 1e-10)  # Stärkste Gewichtung für sehr niedrigen Recall
+            weight = 1 / (r + 1e-10) 
         elif r < 0.7:
-            weight = 1 / (r + 0.2)  # Mäßige Verstärkung für mittleren Recall
+            weight = 1 / (r + 0.2)
         else:
-            weight = 1 / (r + 0.5)  # Leichte Verstärkung für hohen Recall
+            weight = 1 / (r + 0.5)
         weights.append(weight)
 
-    # Normiere Gewichtungen
     total_weight = sum(weights)
     weights = [w / total_weight for w in weights]
 
@@ -34,10 +33,8 @@ def calculate_weights(eval_metrics):
 
 
 def evaluate_metrics_aggregation(eval_metrics):
-    """Aggregiert die Metriken der Clients unter Berücksichtigung der Gewichtung."""
     weights = calculate_weights(eval_metrics)
 
-    # Aggregierte Metriken berechnen
     auc_aggregated = sum(w * metrics["AUC"] for w, (_, metrics) in zip(weights, eval_metrics))
     recall_aggregated = sum(w * metrics["Recall"] for w, (_, metrics) in zip(weights, eval_metrics))
 
@@ -46,7 +43,6 @@ def evaluate_metrics_aggregation(eval_metrics):
         "Recall (aggregated)": recall_aggregated,
     }
 
-    # Speichern des globalen Modells
     global_model_bytes = eval_metrics[0][1].get("global_model_bytes")
     if global_model_bytes:
         with open("global_model.json", "wb") as f:
@@ -58,7 +54,6 @@ def evaluate_metrics_aggregation(eval_metrics):
 #_______________________________________
 
 def config_func(rnd: int) -> Dict[str, str]:
-    """Konfigurationsfunktion für jede Runde."""
     return {"global_round": str(rnd)}
 
 
