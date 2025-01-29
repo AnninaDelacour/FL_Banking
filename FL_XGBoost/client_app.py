@@ -136,8 +136,6 @@ class FlowerClient(Client):
             },
         )
 
-#____________________
-
 #_______________________________________
 
 
@@ -170,7 +168,7 @@ def client_fn(context: Context):
         "n_estimators": 200,
         "reg_alpha": 0.5,
         "reg_lambda": 1.0,
-        "scale_pos_weight": scale_pos_weight,
+        "scale_pos_weight": scale_pos_weight,}
 
     return FlowerClient(
         train_dmatrix,
