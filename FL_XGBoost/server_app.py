@@ -1,8 +1,11 @@
 from typing import Dict
+
 from flwr.common import Context, Parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedXgbBagging
 
+
+#_______________________________________
 
 
 def evaluate_metrics_aggregation(eval_metrics):
@@ -20,13 +23,17 @@ def evaluate_metrics_aggregation(eval_metrics):
 
     return metrics_aggregated
 
-#______________
+
+#_______________________________________
+
 
 def config_func(rnd: int) -> Dict[str, str]:
     """Returns configuration for each round."""
     return {"global_round": str(rnd)}
 
-#______________
+
+#_______________________________________
+
 
 def server_fn(context: Context):
     try:
@@ -51,6 +58,8 @@ def server_fn(context: Context):
 
     return ServerAppComponents(strategy=strategy, config=config)
 
-#______________
+
+#_______________________________________
+
 
 app = ServerApp(server_fn=server_fn)

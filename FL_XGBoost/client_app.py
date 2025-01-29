@@ -1,9 +1,11 @@
 import warnings
+import logging as log
 
 import pandas as pd
 
+from FL_XGBoost.data_partition import load_data_for_client
+
 from flwr.common.context import Context
-from FL_XGBoost.data_partition import load_data_for_client, replace_keys
 from flwr.client import Client, ClientApp
 from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Status, Code
 
@@ -17,25 +19,31 @@ from sklearn.metrics import log_loss, roc_auc_score, precision_score, recall_sco
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-#____________________
+#_______________________________________
 
 class FlowerClient(Client):
-    def __init__(self, train_dmatrix, valid_dmatrix, num_train, num_val, num_local_round, params):
+    def __init__(self, train_dmatrix, valid_dmatrix, num_train, 
+                 num_val, num_local_round, params, optimal_threshold, bank_name):
         self.train_dmatrix = train_dmatrix
         self.valid_dmatrix = valid_dmatrix
         self.num_train = num_train
         self.num_val = num_val
         self.num_local_round = num_local_round
         self.params = params
+        self.optimal_threshold = optimal_threshold
+        self.bank_name = bank_name
+
 
         wandb.init(
-            project="fl_third_run",
-            name=f"fl_third_run-{wandb.util.generate_id()}",
+            project="fl_seventh_run",
+            name=f"{bank_name}_fl_run-{wandb.util.generate_id()}",
             reinit=True,
             config=params,
         )
 
-#____________________
+
+#_______________________________________
+
 
     def fit(self, ins: FitIns) -> FitRes:
         global_round = int(ins.config["global_round"])
@@ -57,17 +65,22 @@ class FlowerClient(Client):
 
         y_true = self.valid_dmatrix.get_label()
         y_pred = bst.predict(self.valid_dmatrix)
-        logloss = log_loss(y_true, y_pred)
-        precision = precision_score(y_true, y_pred.round())
-        recall = recall_score(y_true, y_pred.round())
-        f1 = f1_score(y_true, y_pred.round())
 
-        wandb.log({"AUC": auc, "LogLoss": logloss,
-            "Precision": precision,
-            "Recall": recall,
-            "F1-Score": f1,
-            "Round": global_round}
-            )
+        y_pred_bin = (y_pred >= self.optimal_threshold).astype(int)
+
+        logloss = log_loss(y_true, y_pred)
+        precision = precision_score(y_true, y_pred_bin)
+        recall = recall_score(y_true, y_pred_bin)
+        f1 = f1_score(y_true, y_pred_bin)
+
+        wandb.log({"AUC": auc, 
+                   "LogLoss": logloss,
+                   "Precision": precision,
+                   "Recall": recall,
+                   "F1-Score": f1,
+                   "Round": global_round
+                   }
+                )
 
         return FitRes(
             status=Status(code=Code.OK, message="OK"),
@@ -81,7 +94,8 @@ class FlowerClient(Client):
                      "Round": global_round},
         )
 
-#____________________
+
+#_______________________________________
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         bst = xgb.Booster(params=self.params)
@@ -90,15 +104,13 @@ class FlowerClient(Client):
         y_true = self.valid_dmatrix.get_label()
         y_pred = bst.predict(self.valid_dmatrix)
 
-        auc = roc_auc_score(y_true, y_pred)
-        logloss = log_loss(y_true, y_pred)
+        y_pred_bin = (y_pred >= self.optimal_threshold).astype(int)
 
-        # Metrics
         auc = roc_auc_score(y_true, y_pred)
         logloss = log_loss(y_true, y_pred)
-        precision = precision_score(y_true, y_pred.round())
-        recall = recall_score(y_true, y_pred.round())
-        f1 = f1_score(y_true, y_pred.round())
+        precision = precision_score(y_true, y_pred_bin)
+        recall = recall_score(y_true, y_pred_bin)
+        f1 = f1_score(y_true,y_pred_bin)
 
         wandb.log({
             "Validation AUC": auc,
@@ -114,37 +126,48 @@ class FlowerClient(Client):
             loss=logloss,
             num_examples=self.num_val,
             metrics={
-            "AUC": auc,
-            "LogLoss": logloss,
-            "Precision": precision,
-            "Recall": recall,
-            "F1-Score": f1,
+                "AUC": auc,
+                "LogLoss": logloss,
+                "Precision": precision,
+                "Recall": recall,
+                "F1-Score": f1,
             },
         )
 
-#____________________
+
+#_______________________________________
+
 
 def client_fn(context: Context):
     partition_id = context.node_config["partition-id"]
     num_partitions = context.node_config["num-partitions"]
-    train_dmatrix, valid_dmatrix, num_train, num_val = load_data_for_client(
+
+    train_dmatrix, valid_dmatrix, num_train, num_val, optimal_threshold, bank_name = load_data_for_client(
         partition_id, num_partitions
     )
 
     num_local_round = int(context.run_config.get("local_epochs", 3))
 
+    scale_pos_weights = {
+        0: context.run_config.get("scale_pos_weights.BankA_Clean", 1.0),
+        1: context.run_config.get("scale_pos_weights.BankB_Clean", 1.0),
+        2: context.run_config.get("scale_pos_weights.BankC_Clean", 1.0),
+    }
+    scale_pos_weight = scale_pos_weights.get(partition_id, 1.0)
+    wandb.log({"scale_pos_weight": {scale_pos_weight}})
+
     params = {
         "objective": "binary:logistic",
-        "eval_metric": "auc",
-        "max_depth": 6,
-        "learning_rate": 0.1466,
-        "subsample": 0.9383,
+        "eval_metric": "aucpr",
+        "max_depth": 8,
+        "learning_rate": 0.05,
+        "subsample": 0.8,
         "colsample_bytree": 0.8631,
-        "min_child_weight": 6,
+        "min_child_weight": 5,
         "n_estimators": 200,
-        "reg_alpha": 0.9566,
-        "reg_lambda": 1.866,
-        "early_stopping_rounds": 500,
+        "reg_alpha": 0.5,
+        "reg_lambda": 1.0,
+        "scale_pos_weight": scale_pos_weight,
     }
 
     return FlowerClient(
@@ -154,8 +177,10 @@ def client_fn(context: Context):
         num_val,
         num_local_round,
         params,
+        optimal_threshold,
+        bank_name,
     )
 
-
+#_______________________________________
 
 app = ClientApp(client_fn=client_fn)

@@ -25,23 +25,26 @@ clientapp = "FL_XGBoost.client_app:app"
 
 [tool.flwr.app.config]
 # ServerApp
-num-server-rounds = 30
+num-server-rounds = 100
 fraction-fit = 1.0
 fraction-evaluate = 1.0
 
 # ClientApp
 local-epochs = 3
 params.objective = "binary:logistic"
-params.eval_metric = "auc"
-params.max_depth = 6
-params.learning_rate = 0.1466
-params.subsample = 0.9383
+params.eval_metric = "aucpr"
+params.max_depth = 8
+params.learning_rate = 0.05
+params.subsample = 0.8
 params.colsample_bytree = 0.8631
-params.min_child_weight = 6
+params.min_child_weight = 5
 params.n_estimators = 200
-params.reg_alpha = 0.9566
-params.reg_lambda = 1.866
-params.early_stopping_rounds = 500
+params.reg_alpha = 0.5
+params.reg_lambda = 1.0
+params.scale_pos_weights.BankA_Clean = 1.7127626440499293
+params.scale_pos_weights.BankB_Clean = 3.6945949409859367
+params.scale_pos_weights.BankC_Clean = 6.5
+
 
 [tool.flwr.federations]
 default = "local-simulation"
