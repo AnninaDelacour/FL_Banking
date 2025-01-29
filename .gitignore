@@ -189,8 +189,6 @@ wandb_exports/
 
 jupyter_notebooks/*
 
-bank_data_clean.zip
-
 BankA_Clean.csv
 BankB_Clean.csv
 BankC_Clean.csv
