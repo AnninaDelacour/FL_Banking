@@ -5,6 +5,7 @@ from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedXgbBagging
 
 
+
 #_______________________________________
 
 
@@ -42,6 +43,7 @@ def server_fn(context: Context):
     except FileNotFoundError:
         global_model = None
 
+
     fraction_fit = context.run_config.get("fraction-fit", 1.0)
     fraction_evaluate = context.run_config.get("fraction-evaluate", 1.0)
 
@@ -58,8 +60,6 @@ def server_fn(context: Context):
 
     return ServerAppComponents(strategy=strategy, config=config)
 
-
 #_______________________________________
-
 
 app = ServerApp(server_fn=server_fn)

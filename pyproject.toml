@@ -45,7 +45,6 @@ params.scale_pos_weights.BankA_Clean = 1.7127626440499293
 params.scale_pos_weights.BankB_Clean = 3.6945949409859367
 params.scale_pos_weights.BankC_Clean = 6.5
 
-
 [tool.flwr.federations]
 default = "local-simulation"
 

@@ -1,4 +1,5 @@
 import warnings
+
 import logging as log
 
 import pandas as pd
@@ -6,6 +7,7 @@ import pandas as pd
 from FL_XGBoost.data_partition import load_data_for_client
 
 from flwr.common.context import Context
+
 from flwr.client import Client, ClientApp
 from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, Parameters, Status, Code
 
@@ -18,6 +20,7 @@ from sklearn.metrics import log_loss, roc_auc_score, precision_score, recall_sco
 #_________________________________________________
 
 warnings.filterwarnings("ignore", category=UserWarning)
+
 
 #_______________________________________
 
@@ -43,7 +46,6 @@ class FlowerClient(Client):
 
 
 #_______________________________________
-
 
     def fit(self, ins: FitIns) -> FitRes:
         global_round = int(ins.config["global_round"])
@@ -94,8 +96,8 @@ class FlowerClient(Client):
                      "Round": global_round},
         )
 
-
 #_______________________________________
+
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         bst = xgb.Booster(params=self.params)
@@ -134,6 +136,7 @@ class FlowerClient(Client):
             },
         )
 
+#____________________
 
 #_______________________________________
 
@@ -168,7 +171,6 @@ def client_fn(context: Context):
         "reg_alpha": 0.5,
         "reg_lambda": 1.0,
         "scale_pos_weight": scale_pos_weight,
-    }
 
     return FlowerClient(
         train_dmatrix,

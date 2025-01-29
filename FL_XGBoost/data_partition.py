@@ -43,12 +43,12 @@ def calculate_optimal_threshold(y_true, X_test):
 
 #_______________________________________
 
-
 def load_data_for_client(client_id, num_clients, test_fraction=0.2, seed=42):
     """
     Load and partition the data for a specific client.
     """
     filename = f"Bank{chr(65 + client_id)}_Clean.csv"
+
     bank_name = f"Bank{chr(65 + client_id)}"
 
     try:
@@ -70,6 +70,7 @@ def load_data_for_client(client_id, num_clients, test_fraction=0.2, seed=42):
 
     train_size = int(len(client_data) * (1 - test_fraction))
     wandb.log({"Train Size": train_size})
+
     train_data = client_data.iloc[:train_size]
     test_data = client_data.iloc[train_size:]
 
