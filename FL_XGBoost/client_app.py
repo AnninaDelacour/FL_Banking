@@ -38,7 +38,7 @@ class FlowerClient(Client):
 
 
         wandb.init(
-            project="fl_seventh_run",
+            project="fl_tenth_run",
             name=f"{bank_name}_fl_run-{wandb.util.generate_id()}",
             reinit=True,
             config=params,

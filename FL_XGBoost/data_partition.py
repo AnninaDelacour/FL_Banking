@@ -11,10 +11,10 @@ import numpy as np
 
 from sklearn.metrics import precision_recall_curve
 
-
 #_______________________________________
 
 wandb.init()
+
 
 #_______________________________________
 
@@ -60,17 +60,13 @@ def load_data_for_client(client_id, num_clients, test_fraction=0.2, seed=42):
 
     np.random.seed(seed)
     shuffled_data = bank_data.sample(frac=1).reset_index(drop=True)
-    wandb.log({"Shuffled Data Size": len(shuffled_data)})
-
     split_size = len(shuffled_data) // num_clients
-    wandb.log({"Split Size": split_size})
     start_idx = client_id * split_size
     end_idx = (client_id + 1) * split_size if client_id < num_clients - 1 else len(shuffled_data)
     client_data = shuffled_data.iloc[start_idx:end_idx]
 
     train_size = int(len(client_data) * (1 - test_fraction))
     wandb.log({"Train Size": train_size})
-
     train_data = client_data.iloc[:train_size]
     test_data = client_data.iloc[train_size:]
 
@@ -85,12 +81,12 @@ def load_data_for_client(client_id, num_clients, test_fraction=0.2, seed=42):
     valid_dmatrix = xgb.DMatrix(X_test, label=y_test, feature_names=feature_columns)
 
     optimal_threshold = calculate_optimal_threshold(y_test, X_test)
+    
     wandb.log({"Optimal Threshold": optimal_threshold})
 
     return train_dmatrix, valid_dmatrix, len(X_train), len(X_test), optimal_threshold, bank_name
 
 #_______________________________________
-
 
 def replace_keys(input_dict, match="-", target="_"):
     """

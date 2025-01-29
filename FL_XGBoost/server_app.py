@@ -5,18 +5,48 @@ from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedXgbBagging
 
 
-
 #_______________________________________
 
 
-def evaluate_metrics_aggregation(eval_metrics):
-    """Aggregates metrics from clients, with a focus on AUC."""
-    total_num = sum([num for num, _ in eval_metrics])
-    auc_aggregated = (
-        sum([metrics["AUC"] * num for num, metrics in eval_metrics]) / total_num
-    )
-    metrics_aggregated = {"AUC (aggregated)": auc_aggregated}
+def calculate_weights(eval_metrics):
+    """
+    Berechnet Gewichtungen für die Clients basierend auf ihrem Recall.
+    Clients mit niedrigem Recall erhalten ein deutlich höheres Gewicht.
+    """
+    recalls = [metrics["Recall"] for _, metrics in eval_metrics]
+    weights = []
 
+    for r in recalls:
+        if r < 0.5:
+            weight = 1 / (r + 1e-10)  # Stärkste Gewichtung für sehr niedrigen Recall
+        elif r < 0.7:
+            weight = 1 / (r + 0.2)  # Mäßige Verstärkung für mittleren Recall
+        else:
+            weight = 1 / (r + 0.5)  # Leichte Verstärkung für hohen Recall
+        weights.append(weight)
+
+    # Normiere Gewichtungen
+    total_weight = sum(weights)
+    weights = [w / total_weight for w in weights]
+
+    return weights
+
+
+
+def evaluate_metrics_aggregation(eval_metrics):
+    """Aggregiert die Metriken der Clients unter Berücksichtigung der Gewichtung."""
+    weights = calculate_weights(eval_metrics)
+
+    # Aggregierte Metriken berechnen
+    auc_aggregated = sum(w * metrics["AUC"] for w, (_, metrics) in zip(weights, eval_metrics))
+    recall_aggregated = sum(w * metrics["Recall"] for w, (_, metrics) in zip(weights, eval_metrics))
+
+    metrics_aggregated = {
+        "AUC (aggregated)": auc_aggregated,
+        "Recall (aggregated)": recall_aggregated,
+    }
+
+    # Speichern des globalen Modells
     global_model_bytes = eval_metrics[0][1].get("global_model_bytes")
     if global_model_bytes:
         with open("global_model.json", "wb") as f:
@@ -27,14 +57,12 @@ def evaluate_metrics_aggregation(eval_metrics):
 
 #_______________________________________
 
-
 def config_func(rnd: int) -> Dict[str, str]:
-    """Returns configuration for each round."""
+    """Konfigurationsfunktion für jede Runde."""
     return {"global_round": str(rnd)}
 
 
 #_______________________________________
-
 
 def server_fn(context: Context):
     try:
@@ -42,7 +70,6 @@ def server_fn(context: Context):
             global_model = f.read()
     except FileNotFoundError:
         global_model = None
-
 
     fraction_fit = context.run_config.get("fraction-fit", 1.0)
     fraction_evaluate = context.run_config.get("fraction-evaluate", 1.0)

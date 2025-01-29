@@ -25,7 +25,7 @@ clientapp = "FL_XGBoost.client_app:app"
 
 [tool.flwr.app.config]
 # ServerApp
-num-server-rounds = 100
+num-server-rounds = 25
 fraction-fit = 1.0
 fraction-evaluate = 1.0
 
