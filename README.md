@@ -5,18 +5,21 @@ The project focuses on financial health assessment across multiple institutions 
 
 ### Project structure
 
+```shell
 FLMODEL  
-│── FL_XGBoost/                  # Core implementation of Federated Learning  
-│   │── __init__.py               # Package initialization  
-│   │── client_app.py             # Client-side implementation for FL training  
-│   │── data_partition.py         # Data preprocessing and partitioning for FL  
-│   │── global_model.py           # Centralized model aggregation  
-│   │── server_app.py             # Server-side orchestration of FL  
+│── FL_XGBoost/                
+│   │── __init__.py              
+│   │── client_app.py           
+│   │── data_partition.py       
+│   │── global_model.py      
+│   │── server_app.py           
 │  
-│── jupyter_notebooks/            # Jupyter notebooks for analysis and visualization  
-│── .gitignore                     # Files to be ignored by Git  
-│── BankData.zip                    # Zipped dataset files  
-│── Feature_Engineering.ipynb        # Feature selection and preprocessing  
-│── pyproject.toml                    # Dependencies and environment configuration  
-│── requirements.txt                   # Python dependencies  
-│── top10_feature_importance.png       # Feature importance visualization  
+│── jupyter_notebooks/            
+│── .gitignore                   
+│── BankData.zip                   
+│── Feature_Engineering.ipynb        
+│── pyproject.toml                   
+│── requirements.txt          
+│── top10_feature_importance.png     
+└── README.md
+```
