@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "banking_FL"
-version = "2.1.0"
+version = "2.1.1"
 description = "Federated Learning with XGBoost and Flower for a Banking Setup"
 license = "Apache-2.0"
 dependencies = [
@@ -25,7 +25,7 @@ clientapp = "FL_XGBoost.client_app:app"
 
 [tool.flwr.app.config]
 # ServerApp
-num-server-rounds = 100
+num-server-rounds = 10
 fraction-fit = 1.0
 fraction-evaluate = 1.0
 
@@ -33,20 +33,20 @@ fraction-evaluate = 1.0
 local-epochs = 3
 params.objective = "binary:logistic"
 params.eval_metric = "aucpr"
-params.max_depth = 8
+params.max_depth = 8  
 params.learning_rate = 0.05
 params.subsample = 0.8
-params.colsample_bytree = 0.8631
-params.min_child_weight = 5
+params.colsample_bytree = 0.85  
+params.min_child_weight = 4  
 params.n_estimators = 200
-params.reg_alpha = 0.5
-params.reg_lambda = 1.0
-params.scale_pos_weights.BankA_Clean = 1.7127626440499293
-params.scale_pos_weights.BankB_Clean = 3.6945949409859367
-params.scale_pos_weights.BankC_Clean = 6.5
+params.reg_alpha = 1.0
+params.reg_lambda = 1.5
+params.scale_pos_weights.bankA_final = 1.7127626440499293
+params.scale_pos_weights.bankB_final = 3.6945949409859367
+params.scale_pos_weights.bankC_final = 6.5
 
 [tool.flwr.federations]
 default = "local-simulation"
 
 [tool.flwr.federations.local-simulation]
-options.num-supernodes = 3
+options.num-supernodes = 3 

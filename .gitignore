@@ -197,4 +197,19 @@ BankA.csv
 BankB.csv
 BankC.csv
 
+bankA_final.csv
+bankB_final.csv
+bankC_final.csv
+
+Combined_Cleaned.csv
+
+cleanest_model.json
+
+latest_model.json
+
+
 combined_data.csv
+client_model.json
+clean_model.json
+evaluating_model.json
+jupyter_notebook/all_features_model.json
